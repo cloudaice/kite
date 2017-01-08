@@ -116,7 +116,10 @@ func (pr *Proto) checkDefine(define KiteDefine) (compression, encryption, check 
 func (pr *Proto) ReadPackage() (*ProtoPackage, error) {
 	header, err := pr.br.ReadHeader()
 	if err != nil {
-		return nil, ErrRead.E(err)
+		if err == io.EOF {
+			return nil, err
+		}
+		return nil, PError("ReadPackage Fail: ").E(err)
 	}
 
 	compression, encryption, check := pr.checkDefine(KiteDefine(header.Define))
@@ -193,7 +196,10 @@ func (pr *Proto) WritePackage(tp KiteType, df KiteDefine, data []byte) error {
 func (pr *Proto) write(data []byte) error {
 	err := pr.bw.Write(data)
 	if err != nil {
-		return ErrWrite.E(err)
+		if err == io.EOF {
+			return err
+		}
+		return PError("WritePackage Fail: ").E(err)
 	}
 	return nil
 }
